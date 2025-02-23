@@ -3,6 +3,8 @@ import json
 from django.http import JsonResponse
 from django.template.defaultfilters import first
 from django.templatetags.static import static
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 
 from .models import Product
@@ -62,9 +64,11 @@ def product_list_api(request):
     })
 
 
+@api_view(['POST'])
 def register_order(request):
     # TODO это лишь заглушка
-    orders = json.loads(request.body.decode())
+    # orders = json.loads(request.body.decode())
+    orders = request.data
     for item in orders['products']:
         product = Product.objects.filter(id=item.get('product')).first()
         item.update({
@@ -94,5 +98,4 @@ def register_order(request):
                 'quantity': item['quantity']
             }
         )
-
-    return JsonResponse({})
+    return Response({})
