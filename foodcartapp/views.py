@@ -1,8 +1,11 @@
 import json
+from logging import exception
 
 from django.http import JsonResponse
-from django.template.defaultfilters import first
+from django.template.defaultfilters import first, lower
 from django.templatetags.static import static
+from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -66,9 +69,32 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
-    # TODO это лишь заглушка
-    # orders = json.loads(request.body.decode())
     orders = request.data
+    if 'products' not in orders:
+        return Response(
+            {
+                'error': 'products: Обязательное поле.'
+            }, status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+    elif orders['products'] is None:
+        return Response(
+            {
+                'error': '// products: Это поле не может быть пустым.'
+            }, status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+    elif not isinstance(orders['products'], list):
+        return Response(
+            {
+                'error': 'products: Ожидался list со значениями, но был получен "str".'
+            }, status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+    elif not orders['products']:
+        return Response(
+            {
+                'error': 'products: Этот список не может быть пустым.'
+            }, status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+    print(orders)
     for item in orders['products']:
         product = Product.objects.filter(id=item.get('product')).first()
         item.update({
@@ -98,4 +124,4 @@ def register_order(request):
                 'quantity': item['quantity']
             }
         )
-    return Response({})
+    return Response({'good': 'status good - 200'}, status=status.HTTP_200_OK)
