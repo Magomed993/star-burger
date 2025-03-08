@@ -1,6 +1,7 @@
 import json
 from logging import exception
 
+from phonenumber_field.phonenumber import PhoneNumber
 from django.http import JsonResponse
 from django.template.defaultfilters import first, lower
 from django.templatetags.static import static
@@ -74,29 +75,71 @@ def register_order(request):
         return Response(
             {
                 'error': 'products: Обязательное поле.'
-            }, status=status.HTTP_405_METHOD_NOT_ALLOWED
+            }, status=status.HTTP_200_OK
         )
     elif orders['products'] is None:
         return Response(
             {
-                'error': '// products: Это поле не может быть пустым.'
-            }, status=status.HTTP_405_METHOD_NOT_ALLOWED
+                'error': 'products: Это поле не может быть пустым.'
+            }, status=status.HTTP_200_OK
         )
     elif not isinstance(orders['products'], list):
         return Response(
             {
                 'error': 'products: Ожидался list со значениями, но был получен "str".'
-            }, status=status.HTTP_405_METHOD_NOT_ALLOWED
+            }, status=status.HTTP_200_OK
         )
     elif not orders['products']:
         return Response(
             {
                 'error': 'products: Этот список не может быть пустым.'
-            }, status=status.HTTP_405_METHOD_NOT_ALLOWED
+            }, status=status.HTTP_200_OK
         )
-    print(orders)
+    elif 'firstname' not in orders and 'lastname' not in orders and 'phonenumber' not in orders and 'address' not in orders:
+        return Response(
+            {
+                'error': 'firstname, lastname, phonenumber, address: Обязательное поле.'
+            }, status=status.HTTP_200_OK
+        )
+    elif orders['lastname'] is None and orders['firstname'] is None and orders['phonenumber'] is None and orders['address'] is None:
+        return Response(
+            {
+                'error': 'firstname, lastname, phonenumber, address: Это поле не может быть пустым.'
+            }, status=status.HTTP_200_OK
+        )
+    elif orders['firstname'] is None:
+        return Response(
+            {
+                'error': 'firstname: Это поле не может быть пустым.'
+            }, status=status.HTTP_200_OK
+        )
+    elif not orders['phonenumber']:
+        return Response(
+            {
+                'error': 'phonenumber: Это поле не может быть пустым.'
+            }, status=status.HTTP_200_OK
+        )
+    elif not PhoneNumber.from_string(orders['phonenumber']).is_valid():
+        return Response(
+            {
+                'error': 'phonenumber: Введен некорректный номер телефона.'
+            }, status=status.HTTP_200_OK
+        )
+    elif not isinstance(orders['firstname'], str):
+        return Response(
+            {
+                'error': 'firstname: Not a valid string.'
+            }, status=status.HTTP_200_OK
+        )
+
     for item in orders['products']:
         product = Product.objects.filter(id=item.get('product')).first()
+        if not product:
+            return Response(
+                {
+                    'error': f'products: Недопустимый первичный ключ: <{item["product"]}>'
+                }, status=status.HTTP_200_OK
+            )
         item.update({
             'id': product.id,
             'name': product.name,
