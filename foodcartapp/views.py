@@ -9,6 +9,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.serializers import ValidationError
+from rest_framework.serializers import ModelSerializer, ListField
 
 
 from .models import Product
@@ -70,76 +72,11 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
-    orders = request.data
-    if 'products' not in orders:
-        return Response(
-            {
-                'error': 'products: Обязательное поле.'
-            }, status=status.HTTP_200_OK
-        )
-    elif orders['products'] is None:
-        return Response(
-            {
-                'error': 'products: Это поле не может быть пустым.'
-            }, status=status.HTTP_200_OK
-        )
-    elif not isinstance(orders['products'], list):
-        return Response(
-            {
-                'error': 'products: Ожидался list со значениями, но был получен "str".'
-            }, status=status.HTTP_200_OK
-        )
-    elif not orders['products']:
-        return Response(
-            {
-                'error': 'products: Этот список не может быть пустым.'
-            }, status=status.HTTP_200_OK
-        )
-    elif 'firstname' not in orders and 'lastname' not in orders and 'phonenumber' not in orders and 'address' not in orders:
-        return Response(
-            {
-                'error': 'firstname, lastname, phonenumber, address: Обязательное поле.'
-            }, status=status.HTTP_200_OK
-        )
-    elif orders['lastname'] is None and orders['firstname'] is None and orders['phonenumber'] is None and orders['address'] is None:
-        return Response(
-            {
-                'error': 'firstname, lastname, phonenumber, address: Это поле не может быть пустым.'
-            }, status=status.HTTP_200_OK
-        )
-    elif orders['firstname'] is None:
-        return Response(
-            {
-                'error': 'firstname: Это поле не может быть пустым.'
-            }, status=status.HTTP_200_OK
-        )
-    elif not orders['phonenumber']:
-        return Response(
-            {
-                'error': 'phonenumber: Это поле не может быть пустым.'
-            }, status=status.HTTP_200_OK
-        )
-    elif not PhoneNumber.from_string(orders['phonenumber']).is_valid():
-        return Response(
-            {
-                'error': 'phonenumber: Введен некорректный номер телефона.'
-            }, status=status.HTTP_200_OK
-        )
-    elif not isinstance(orders['firstname'], str):
-        return Response(
-            {
-                'error': 'firstname: Not a valid string.'
-            }, status=status.HTTP_200_OK
-        )
-
-    for item in orders['products']:
-        product = Product.objects.filter(id=item.get('product')).first()
-        if not product:
-            return Response(
-                {
-                    'error': f'products: Недопустимый первичный ключ: <{item["product"]}>'
-                }, status=status.HTTP_200_OK
-            )
+    serializer = OrderSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    products_serializer = serializer.validated_data['products']
+    for item in products_serializer:
+        product = Product.objects.filter(name=item.get('product')).first()
         item.update({
             'id': product.id,
             'name': product.name,
@@ -152,13 +89,13 @@ def register_order(request):
             'special_status': product.special_status,
             'description': product.description
         })
-    for item in orders['products']:
-        product = Product.objects.filter(id=item.get('product')).first()
+    for item in products_serializer:
+        product = Product.objects.filter(name=item.get('product')).first()
         order, created = Order.objects.get_or_create(
-            address=orders['address'],
-            name=orders['firstname'],
-            last_name=orders['lastname'],
-            mobile_number=orders['phonenumber']
+            address=serializer.validated_data['address'],
+            firstname=serializer.validated_data['firstname'],
+            lastname=serializer.validated_data['lastname'],
+            phonenumber=serializer.validated_data['phonenumber']
         )
         order_element, el_created = OrderElement.objects.get_or_create(
             order=order,
@@ -168,3 +105,16 @@ def register_order(request):
             }
         )
     return Response({'good': 'status good - 200'}, status=status.HTTP_200_OK)
+
+
+class OrderElementSerializer(ModelSerializer):
+    class Meta:
+        model = OrderElement
+        fields = ['product', 'quantity']
+
+
+class OrderSerializer(ModelSerializer):
+    products = ListField(child=OrderElementSerializer(), allow_empty=False)
+    class Meta:
+        model = Order
+        fields = ['address', 'firstname', 'lastname', 'phonenumber', 'products']
