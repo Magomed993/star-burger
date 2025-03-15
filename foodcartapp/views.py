@@ -9,8 +9,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.serializers import ValidationError
-from rest_framework.serializers import ModelSerializer, ListField
+from foodcartapp.serializers import OrderSerializer
 
 
 from .models import Product
@@ -104,17 +103,7 @@ def register_order(request):
                 'quantity': item['quantity']
             }
         )
-    return Response({'good': 'status good - 200'}, status=status.HTTP_200_OK)
+    order_data = {'id': order.id}
+    order_data.update(serializer.data)
 
-
-class OrderElementSerializer(ModelSerializer):
-    class Meta:
-        model = OrderElement
-        fields = ['product', 'quantity']
-
-
-class OrderSerializer(ModelSerializer):
-    products = ListField(child=OrderElementSerializer(), allow_empty=False)
-    class Meta:
-        model = Order
-        fields = ['address', 'firstname', 'lastname', 'phonenumber', 'products']
+    return Response(order_data, status=status.HTTP_200_OK)
