@@ -1,4 +1,5 @@
 import json
+from http.client import responses
 from logging import exception
 
 from phonenumber_field.phonenumber import PhoneNumber
@@ -74,20 +75,7 @@ def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     products_serializer = serializer.validated_data['products']
-    for item in products_serializer:
-        product = Product.objects.filter(name=item.get('product')).first()
-        item.update({
-            'id': product.id,
-            'name': product.name,
-            'category': {
-                'id':product.category.id,
-                'name': product.category.name
-            },
-            'image': product.image.url,
-            'price': product.price,
-            'special_status': product.special_status,
-            'description': product.description
-        })
+
     for item in products_serializer:
         product = Product.objects.filter(name=item.get('product')).first()
         order, created = Order.objects.get_or_create(
@@ -103,7 +91,6 @@ def register_order(request):
                 'quantity': item['quantity']
             }
         )
-    order_data = {'id': order.id}
-    order_data.update(serializer.data)
+    serializer = OrderSerializer(order)
 
-    return Response(order_data, status=status.HTTP_200_OK)
+    return Response(serializer.data, status=status.HTTP_200_OK)
