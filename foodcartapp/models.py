@@ -179,6 +179,13 @@ class OrderElement(models.Model):
         validators=[MinValueValidator(0)],
         db_index=True
     )
+    price = models.DecimalField(
+        verbose_name='цена',
+        max_digits=8,
+        decimal_places=2,
+        default=0.0,
+        validators=[MinValueValidator(0)]
+    )
 
     class Meta:
         ordering = ['quantity']

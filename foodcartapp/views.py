@@ -88,7 +88,8 @@ def register_order(request):
             order=order,
             product=product,
             defaults={
-                'quantity': item['quantity']
+                'quantity': item['quantity'],
+                'price': product.price * item['quantity']
             }
         )
     serializer = OrderSerializer(order)

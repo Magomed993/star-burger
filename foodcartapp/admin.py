@@ -16,7 +16,7 @@ class RestaurantMenuItemInline(admin.TabularInline):
     extra = 0
 
 
-class OrderElementsInline(admin.TabularInline):
+class OrderElementInline(admin.TabularInline):
     model = OrderElement
     extra = 0
 
@@ -116,5 +116,15 @@ class ProductAdmin(admin.ModelAdmin):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     inlines = [
-        OrderElementsInline
+        OrderElementInline
     ]
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for obj in formset.deleted_objects:
+            obj.delete()
+        for instance in instances:
+            instance.user = request.user
+            instance.price = instance.product.price * instance.quantity
+            instance.save()
+        formset.save_m2m()
