@@ -125,6 +125,5 @@ class OrderAdmin(admin.ModelAdmin):
             obj.delete()
         for instance in instances:
             instance.user = request.user
-            instance.price = instance.product.price * instance.quantity
             instance.save()
         formset.save_m2m()
