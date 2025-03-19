@@ -11,6 +11,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from foodcartapp.serializers import OrderSerializer
+from django.db import transaction
 
 
 from .models import Product
@@ -70,6 +71,7 @@ def product_list_api(request):
     })
 
 
+@transaction.atomic
 @api_view(['POST'])
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
