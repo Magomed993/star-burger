@@ -133,7 +133,7 @@ class OrderAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj):
         res = super(OrderAdmin, self).response_change(request, obj)
-        next_url = request.GET['next']
+        next_url = request.GET.get('next')
         if url_has_allowed_host_and_scheme(next_url, ALLOWED_HOSTS):
             return redirect(next_url)
         return res
