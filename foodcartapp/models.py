@@ -144,6 +144,10 @@ class Order(models.Model):
         ('handed over to the courier', 'передан курьеру'),
         ('completed', 'выполнен'),
     ]
+    PAYMENT_METHOD_CHOICES = [
+        ('electronically', 'Электронно'),
+        ('in_cash', 'Наличностью')
+    ]
     status = models.CharField(
         max_length=30,
         db_index=True,
@@ -187,6 +191,13 @@ class Order(models.Model):
         verbose_name='дата доставки',
         null=True,
         blank=True,
+    )
+    payment_method = models.CharField(
+        verbose_name='способ оплаты',
+        max_length=30,
+        db_index=True,
+        choices=PAYMENT_METHOD_CHOICES,
+        default=PAYMENT_METHOD_CHOICES[1][0]
     )
     objects = CustomQueryset.as_manager()
 
