@@ -143,6 +143,13 @@ class Order(models.Model):
         ('handed over to the courier', 'передан курьеру'),
         ('completed', 'выполнен'),
     ]
+    status = models.CharField(
+        max_length=30,
+        db_index=True,
+        verbose_name='статус',
+        choices=ORDER_CHOICES,
+        default=ORDER_CHOICES[1][0]
+    )
     address = models.CharField(
         verbose_name='адрес',
         max_length=200
@@ -158,12 +165,11 @@ class Order(models.Model):
     phonenumber = PhoneNumberField(
         verbose_name='мобильный номер',
     )
-    status = models.CharField(
-        max_length=30,
-        db_index=True,
-        verbose_name='статус',
-        choices=ORDER_CHOICES,
-        default=ORDER_CHOICES[1][0]
+    comment = models.TextField(
+        max_length=200,
+        verbose_name='комментарий',
+        blank=True,
+        null=True
     )
     objects = CustomQueryset.as_manager()
 
