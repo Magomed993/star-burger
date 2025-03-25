@@ -1,11 +1,18 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Count, Q, Value
+
 from django.utils import timezone
 
 
 class CustomQueryset(models.QuerySet):
+
+    # def with_restaurants(self):
+    #     restaurants = [self.annotate(
+    #         restaurants=F('order_elements__product__menu_items__restaurant__name')
+    #     )]
+    #     return restaurants
 
     def total_price(self):
         price = self.annotate(
@@ -198,6 +205,14 @@ class Order(models.Model):
         db_index=True,
         choices=PAYMENT_METHOD_CHOICES,
         default=PAYMENT_METHOD_CHOICES[1][0]
+    )
+    restaurant = models.ForeignKey(
+        Restaurant,
+        verbose_name='рестораны',
+        related_name='orders',
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
     )
     objects = CustomQueryset.as_manager()
 
