@@ -1,3 +1,5 @@
+import requests
+
 from django import forms
 from django.shortcuts import redirect, render
 from django.views import View
@@ -6,9 +8,15 @@ from django.contrib.auth.decorators import user_passes_test
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-
+from django.conf import settings
 
 from foodcartapp.models import Product, Restaurant, Order, OrderElement, RestaurantMenuItem
+from geopy import distance
+from environs import Env
+
+
+env = Env()
+env.read_env()
 
 
 class Login(forms.Form):
@@ -90,17 +98,43 @@ def view_restaurants(request):
     })
 
 
+def fetch_coordinates(apikey, address):
+    base_url = "https://geocode-maps.yandex.ru/1.x"
+    response = requests.get(base_url, params={
+        "geocode": address,
+        "apikey": apikey,
+        "format": "json",
+    })
+    response.raise_for_status()
+    found_places = response.json()['response']['GeoObjectCollection']['featureMember']
+
+    if not found_places:
+        return None
+
+    most_relevant = found_places[0]
+    lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
+    return lat, lon
+
+
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = Order.objects.total_price()
 
     for order in orders:
+        order_coordinates = fetch_coordinates(settings.API_KEY, order.address)
         for item in order.order_elements.select_related('product'):
-            restaurants = set(
-                item.product.menu_items\
-                    .prefetch_related('restaurant', 'product')
-            )
-            order.restaurants = restaurants
+            restaurants = item.product.menu_items \
+                .prefetch_related('restaurant', 'product')\
+                .values_list('restaurant__name', flat=True)
+        order.restaurants = restaurants
+
+        restaurants_distances = []
+        for order_restaurant in order.restaurants:
+            coordinates_restaurant = fetch_coordinates(settings.API_KEY, order_restaurant)
+            restaurant_distance = round(distance.distance(order_coordinates, coordinates_restaurant).km, 2)
+            restaurants_distances.append([order_restaurant, restaurant_distance])
+        order.restaurant_distances = restaurants_distances
+
 
     return render(request, template_name='order_items.html', context={
         'order_items': orders,

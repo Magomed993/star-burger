@@ -8,12 +8,6 @@ from django.utils import timezone
 
 class CustomQueryset(models.QuerySet):
 
-    # def with_restaurants(self):
-    #     restaurants = [self.annotate(
-    #         restaurants=F('order_elements__product__menu_items__restaurant__name')
-    #     )]
-    #     return restaurants
-
     def total_price(self):
         price = self.annotate(
             total_price=Sum(
