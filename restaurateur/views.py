@@ -128,12 +128,16 @@ def view_orders(request):
                 .values_list('restaurant__name', flat=True)
         order.restaurants = restaurants
 
-        restaurants_distances = []
-        for order_restaurant in order.restaurants:
-            coordinates_restaurant = fetch_coordinates(settings.API_KEY, order_restaurant)
-            restaurant_distance = round(distance.distance(order_coordinates, coordinates_restaurant).km, 2)
-            restaurants_distances.append([order_restaurant, restaurant_distance])
-        order.restaurant_distances = restaurants_distances
+        try:
+            restaurants_distances = []
+            for order_restaurant in order.restaurants:
+                coordinates_restaurant = fetch_coordinates(settings.API_KEY, order_restaurant)
+                restaurant_distance = round(distance.distance(order_coordinates, coordinates_restaurant).km, 2)
+                restaurants_distances.append((order_restaurant, restaurant_distance))
+            restaurants_distances = sorted(restaurants_distances, key=lambda dist: dist[1])
+            order.restaurant_distances = restaurants_distances
+        except requests.RequestException as err:
+            print(err)
 
 
     return render(request, template_name='order_items.html', context={
