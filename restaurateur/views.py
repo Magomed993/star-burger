@@ -1,6 +1,7 @@
 import requests
 
 from django import forms
+from django.db.backends.signals import connection_created
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
@@ -10,7 +11,8 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 
-from foodcartapp.models import Product, Restaurant, Order, OrderElement, RestaurantMenuItem
+from foodcartapp.models import Product, Restaurant, Order
+from places.models import Place
 from geopy import distance
 from environs import Env
 
@@ -119,24 +121,49 @@ def fetch_coordinates(apikey, address):
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = Order.objects.total_price()
+    restaurants = Restaurant.objects.all()
 
     for order in orders:
-        order_coordinates = fetch_coordinates(settings.API_KEY, order.address)
         for item in order.order_elements.select_related('product'):
-            restaurants = item.product.menu_items \
+            accept_restaurants = item.product.menu_items \
                 .prefetch_related('restaurant', 'product')\
                 .values_list('restaurant__name', flat=True)
-        order.restaurants = restaurants
+        order.restaurants = accept_restaurants
+        order_place, created = Place.objects.get_or_create(
+            address=order.address,
+        )
+        if created:
+            order_coordinates = fetch_coordinates(settings.API_KEY, order.address)
+            order_place.lat, order_place.lng = order_coordinates
+            order_place.save()
 
         try:
             restaurants_distances = []
             for order_restaurant in order.restaurants:
-                coordinates_restaurant = fetch_coordinates(settings.API_KEY, order_restaurant)
-                restaurant_distance = round(distance.distance(order_coordinates, coordinates_restaurant).km, 2)
+                restaurant = restaurants.get(name=order_restaurant)
+                restaurant_place, created_ = Place.objects.get_or_create(
+                    address=restaurant.address,
+                )
+                if created_:
+                    coordinates_restaurant = fetch_coordinates(settings.API_KEY, order_restaurant)
+                    restaurant_place.lat, restaurant_place.lng = coordinates_restaurant
+                    restaurant_place.save()
+                restaurant_distance = round(
+                    distance.distance(
+                        (
+                            order_place.lat,
+                            order_place.lng
+                        ),
+                        (
+                            restaurant_place.lat,
+                            restaurant_place.lng
+                        )
+                    ).km, 2
+                )
                 restaurants_distances.append((order_restaurant, restaurant_distance))
             restaurants_distances = sorted(restaurants_distances, key=lambda dist: dist[1])
             order.restaurant_distances = restaurants_distances
-        except requests.RequestException as err:
+        except requests.exceptions.RequestException as err:
             print(err)
 
 
