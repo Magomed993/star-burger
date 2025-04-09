@@ -237,7 +237,6 @@ class OrderElement(models.Model):
         verbose_name='цена',
         max_digits=8,
         decimal_places=2,
-        default=0.0,
         validators=[MinValueValidator(0)]
     )
 
