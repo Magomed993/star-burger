@@ -24,7 +24,7 @@ class Place(models.Model):
     )
     date = models.DateTimeField(
         verbose_name='дата',
-        default=timezone.now,
+        auto_now=True,
         db_index=True,
     )
 

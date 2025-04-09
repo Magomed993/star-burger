@@ -132,10 +132,9 @@ def view_orders(request):
         order_place, created = Place.objects.get_or_create(
             address=order.address,
         )
-        if created:
-            order_coordinates = fetch_coordinates(settings.API_KEY, order.address)
-            order_place.lat, order_place.lng = order_coordinates
-            order_place.save()
+        order_coordinates = fetch_coordinates(settings.API_KEY, order.address)
+        order_place.lat, order_place.lng = order_coordinates
+        order_place.save()
 
         try:
             restaurants_distances = []
