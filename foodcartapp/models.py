@@ -174,12 +174,12 @@ class Order(models.Model):
     comment = models.TextField(
         max_length=200,
         verbose_name='комментарий',
+        blank=True,
     )
     registered_at = models.DateTimeField(
         verbose_name='дата регистрации',
-        default=timezone.now,
+        auto_now_add=True,
         db_index=True,
-        null=True
     )
     called_at = models.DateTimeField(
         verbose_name='дата звонка',
