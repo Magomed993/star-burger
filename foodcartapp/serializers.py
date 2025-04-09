@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer, ListField
+from rest_framework.serializers import ModelSerializer
 from foodcartapp.models import Product, Order, OrderElement
 
 

@@ -1,7 +1,6 @@
 import requests
 
 from django import forms
-from django.db.backends.signals import connection_created
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
@@ -11,10 +10,11 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 
+from environs import Env
+from geopy import distance
+
 from foodcartapp.models import Product, Restaurant, Order
 from places.models import Place
-from geopy import distance
-from environs import Env
 
 
 env = Env()

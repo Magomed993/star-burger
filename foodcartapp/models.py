@@ -3,8 +3,6 @@ from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import Sum, F
 
-from django.utils import timezone
-
 
 class CustomQueryset(models.QuerySet):
 

@@ -1,22 +1,12 @@
-import json
-from http.client import responses
-from logging import exception
-
-from phonenumber_field.phonenumber import PhoneNumber
 from django.http import JsonResponse
-from django.template.defaultfilters import first, lower
 from django.templatetags.static import static
-from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from foodcartapp.serializers import OrderSerializer
 from django.db import transaction
 
-
 from .models import Product
-from .models import Order
-from .models import OrderElement
 
 
 def banners_list_api(request):
