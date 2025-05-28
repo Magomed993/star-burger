@@ -64,6 +64,11 @@ SECRET_KEY=django-insecure-0if40nf4nf93n4
 APIKEY=ключ
 ```
 
+Определите переменную окружения `ROLLBAR_ACCESS_TOKEN`. Для этого необходимо зарегистрироваться в [rollbar](https://rollbar.com/). Далее в файл `.env` в каталоге `star_burger/` занести полученный `ROLLBAR_ACCESS_TOKEN`:
+```sh
+ROLLBAR_ACCESS_TOKEN=rollbar_ключ
+```
+
 Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
 
 ```sh

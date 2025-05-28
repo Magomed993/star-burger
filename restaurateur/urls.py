@@ -1,7 +1,7 @@
 from django.urls import path
 from django.shortcuts import redirect
 
-from . import views
+from restaurateur import views
 
 app_name = "restaurateur"
 
