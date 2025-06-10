@@ -69,6 +69,11 @@ APIKEY=ключ
 ROLLBAR_ACCESS_TOKEN=rollbar_ключ
 ```
 
+Определите переменную окружения `DATABASE_URL`. Для этого необходимо записать url в формате `postgres://USER:PASSWORD@HOST:PORT/NAME`, где на месте значений `USER`,`PASSWORD`, `HOST` и `NAME` занести данные своей БД и далее в файл `.env` в каталоге `star_burger/` занести полученный `DATABASE_URL`:
+```sh
+DATABASE_URL=свой_url
+```
+
 Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
 
 ```sh

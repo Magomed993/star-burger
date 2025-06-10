@@ -15,6 +15,7 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
 ROLLBAR_ACCESS_TOKEN = env.str('ROLLBAR_ACCESS_TOKEN', None)
 ROLLBAR_ENVIRONMENT = env.str('ROLLBAR_ENVIRONMENT', 'production')
+DATABASE_URL = env.str('DATABASE_URL')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
 
@@ -95,8 +96,7 @@ MEDIA_URL = '/media/'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:////{0}'.format(os.path.join(BASE_DIR, 'db.sqlite3'))
-    )
+            default=DATABASE_URL),
 }
 
 AUTH_PASSWORD_VALIDATORS = [
